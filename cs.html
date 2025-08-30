@@ -1,0 +1,176 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Face Authentication </title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    /* Container to hold both upload sections side by side */
+    .upload-container {
+      display: flex;
+      gap: 40px; /* space between the two */
+      justify-content: center;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap; /* allows stacking on small screens */
+    }
+
+    .upload-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-label {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      background-color: #17a2b8;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .file-label:hover {
+      background-color: #117a8b;
+    }
+
+    .preview {
+      margin: 5px 0;
+      max-width: 200px;
+      max-height: 200px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      object-fit: cover;
+      display: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    h3 {
+      margin-top: 20px;
+      color: #333;
+    }
+
+    #result {
+      font-weight: bold;
+      color: #d9534f; /* default red for NO */
+    }
+  </style>
+</head>
+<body>
+  <h2>Face Authentication System</h2>
+  <p>Select two face images to compare:</p>
+
+  <div class="upload-container">
+    <div class="upload-box">
+      <label for="img1" class="file-label">Choose First Image</label>
+      <input type="file" id="img1" accept="image/*">
+      <img id="preview1" class="preview" alt="Preview 1">
+    </div>
+    <div class="upload-box">
+      <label for="img2" class="file-label">Choose Second Image</label>
+      <input type="file" id="img2" accept="image/*">
+      <img id="preview2" class="preview" alt="Preview 2">
+    </div>
+  </div>
+
+  <button id="compareBtn">Compare</button>
+  <h3>Result: <span id="result"></span></h3>
+
+<script>
+function previewImage(inputEl, previewEl) {
+  const file = inputEl.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewEl.src = e.target.result;
+      previewEl.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    previewEl.style.display = 'none';
+    previewEl.src = '';
+  }
+}
+
+document.getElementById('img1').addEventListener('change', () => {
+  previewImage(document.getElementById('img1'), document.getElementById('preview1'));
+});
+
+document.getElementById('img2').addEventListener('change', () => {
+  previewImage(document.getElementById('img2'), document.getElementById('preview2'));
+});
+
+document.getElementById('compareBtn').addEventListener('click', async () => {
+  const f1 = document.getElementById('img1').files[0];
+  const f2 = document.getElementById('img2').files[0];
+  const resultEl = document.getElementById('result');
+  if (!f1 || !f2) {
+    alert('Please select both images');
+    return;
+  }
+
+  const form = new FormData();
+  form.append("api_key", "ir6pjSqFdTjwNAzBWGjzuqfQbeWBz3er");
+  form.append("api_secret", "1bsKYKspCnw_R1F0WtK8VG7cwykQcWpJ");
+  form.append("image_file1", f1);
+  form.append("image_file2", f2);
+
+  resultEl.textContent = "Comparing...";
+  try {
+    const res = await fetch("https://api-us.faceplusplus.com/facepp/v3/compare", {
+      method: "POST",
+      body: form
+    });
+    const data = await res.json();
+    const isSame = data.confidence >= 80; // adjust threshold as needed
+    resultEl.textContent = isSame ? "Verified Successfully" : "NO (different person)";
+    resultEl.style.color = isSame ? "#28a745" : "#d9534f";
+  } catch (err) {
+    resultEl.textContent = "Error: " + err;
+    resultEl.style.color = "#d9534f";
+  }
+});
+</script>
+</body>
+</html>
